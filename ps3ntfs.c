@@ -34,6 +34,8 @@ sys_lwmutex_t* ps3ntfs_prx_mutex_ptr(void)
 
 void ps3ntfs_automount(uint64_t ptr)
 {
+	sys_timer_sleep(5);
+
 	sys_lwmutex_attribute_t attr = {
 		SYS_SYNC_FIFO,
 		SYS_SYNC_NOT_RECURSIVE,
