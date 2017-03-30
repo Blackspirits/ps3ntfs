@@ -117,7 +117,7 @@ int prx_start(size_t args, void* argv)
 	prx_running = true;
 	show_msgs = true;
 
-	if(sys_ppu_thread_create(&prx_tid, ps3ntfs_automount, 0, 1001, 0x2000, SYS_PPU_THREAD_CREATE_JOINABLE, (char*) "ps3ntfs") != 0)
+	if(sys_ppu_thread_create(&prx_tid, ps3ntfs_automount, 0, 1001, 0x4000, SYS_PPU_THREAD_CREATE_JOINABLE, (char*) "ps3ntfs") != 0)
 	{
 		finalize_module();
 		_sys_ppu_thread_exit(0);
