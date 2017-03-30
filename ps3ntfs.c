@@ -9,7 +9,6 @@
 #include "ntfs.h"
 #include "ps3ntfs.h"
 
-sys_lwmutex_t mutex;
 bool show_msgs = false;
 
 ntfs_md* mounts = NULL;
@@ -27,23 +26,8 @@ int ps3ntfs_prx_num_mounts(void)
 	return num_mounts;
 }
 
-sys_lwmutex_t* ps3ntfs_prx_mutex_ptr(void)
-{
-	return &mutex;
-}
-
 void ps3ntfs_automount(uint64_t ptr)
 {
-	sys_timer_sleep(5);
-
-	sys_lwmutex_attribute_t attr = {
-		SYS_SYNC_FIFO,
-		SYS_SYNC_NOT_RECURSIVE,
-		""
-	};
-
-	sys_lwmutex_create(&mutex, &attr);
-
 	bool is_mounted[8];
 	memset(is_mounted, false, sizeof(is_mounted));
 
@@ -73,8 +57,6 @@ void ps3ntfs_automount(uint64_t ptr)
 
 					if(num_partitions > 0 && partitions)
 					{
-						sys_lwmutex_lock(&mutex, 0);
-
 						int j;
 						for(j = 0; j < num_partitions; j++)
 						{
@@ -94,7 +76,6 @@ void ps3ntfs_automount(uint64_t ptr)
 							}
 						}
 
-						sys_lwmutex_unlock(&mutex);
 						free(partitions);
 					}
 
@@ -112,8 +93,6 @@ void ps3ntfs_automount(uint64_t ptr)
 			{
 				if(is_mounted[i])
 				{
-					sys_lwmutex_lock(&mutex, 0);
-
 					int j;
 					for(j = 0; j < num_mounts; j++)
 					{
@@ -129,8 +108,6 @@ void ps3ntfs_automount(uint64_t ptr)
 							--j;
 						}
 					}
-
-					sys_lwmutex_unlock(&mutex);
 
 					if(show_msgs)
 					{
@@ -148,8 +125,6 @@ void ps3ntfs_automount(uint64_t ptr)
 	}
 
 	// Unmount NTFS.
-	sys_lwmutex_lock(&mutex, 0);
-
 	while(num_mounts-- > 0)
 	{
 		ntfsUnmount(mounts[num_mounts].name, true);
@@ -160,9 +135,6 @@ void ps3ntfs_automount(uint64_t ptr)
 		free(mounts);
 		mounts = NULL;
 	}
-
-	sys_lwmutex_unlock(&mutex);
-	sys_lwmutex_destroy(&mutex);
 	
 	sys_ppu_thread_exit(0);
 }

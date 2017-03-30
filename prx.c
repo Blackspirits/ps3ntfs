@@ -11,7 +11,6 @@ SYS_LIB_DECLARE_WITH_STUB(NTFSD, SYS_LIB_AUTO_EXPORT | SYS_LIB_WEAK_IMPORT, libp
 
 SYS_LIB_EXPORT(ps3ntfs_prx_mounts, NTFSD);
 SYS_LIB_EXPORT(ps3ntfs_prx_num_mounts, NTFSD);
-SYS_LIB_EXPORT(ps3ntfs_prx_mutex_ptr, NTFSD);
 
 /* ntfs.h */
 SYS_LIB_EXPORT(ntfsFindPartitions, NTFSD);
