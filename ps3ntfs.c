@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#include <sys/synchronization.h>
 #include <sys/types.h>
 
 #include "vsh_exports.h"
@@ -28,14 +27,9 @@ int ps3ntfs_prx_num_mounts(void)
 	return num_mounts;
 }
 
-void ps3ntfs_prx_lock(void)
+sys_lwmutex_t* ps3ntfs_prx_mutex_ptr(void)
 {
-	sys_lwmutex_lock(&mutex, 0);
-}
-
-void ps3ntfs_prx_unlock(void)
-{
-	sys_lwmutex_unlock(&mutex);
+	return &mutex;
 }
 
 void ps3ntfs_automount(uint64_t ptr)
@@ -77,7 +71,7 @@ void ps3ntfs_automount(uint64_t ptr)
 
 					if(num_partitions > 0 && partitions)
 					{
-						ps3ntfs_prx_lock();
+						sys_lwmutex_lock(&mutex, 0);
 
 						int j;
 						for(j = 0; j < num_partitions; j++)
@@ -98,14 +92,13 @@ void ps3ntfs_automount(uint64_t ptr)
 							}
 						}
 
-						ps3ntfs_prx_unlock();
-
+						sys_lwmutex_unlock(&mutex);
 						free(partitions);
 					}
 
 					if(show_msgs)
 					{
-						char msg[256];
+						char msg[32];
 						sprintf(msg, "Mounted /dev_usb%03d", i);
 						vshtask_notify(msg);
 					}
@@ -117,7 +110,7 @@ void ps3ntfs_automount(uint64_t ptr)
 			{
 				if(is_mounted[i])
 				{
-					ps3ntfs_prx_lock();
+					sys_lwmutex_lock(&mutex, 0);
 
 					int j;
 					for(j = 0; j < num_mounts; j++)
@@ -135,11 +128,11 @@ void ps3ntfs_automount(uint64_t ptr)
 						}
 					}
 
-					ps3ntfs_prx_unlock();
+					sys_lwmutex_unlock(&mutex);
 
 					if(show_msgs)
 					{
-						char msg[256];
+						char msg[32];
 						sprintf(msg, "Unmounted /dev_usb%03d", i);
 						vshtask_notify(msg);
 					}
@@ -153,7 +146,7 @@ void ps3ntfs_automount(uint64_t ptr)
 	}
 
 	// Unmount NTFS.
-	ps3ntfs_prx_lock();
+	sys_lwmutex_lock(&mutex, 0);
 
 	while(num_mounts-- > 0)
 	{
@@ -166,8 +159,7 @@ void ps3ntfs_automount(uint64_t ptr)
 		mounts = NULL;
 	}
 
-	ps3ntfs_prx_unlock();
-
+	sys_lwmutex_unlock(&mutex);
 	sys_lwmutex_destroy(&mutex);
 	
 	sys_ppu_thread_exit(0);
